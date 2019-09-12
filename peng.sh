@@ -877,18 +877,18 @@ Download_SSR(){
 }
 Service_SSR(){
 	if [[ ${release} = "centos" ]]; then
-		if ! wget --no-check-certificate https://raw.githubusercontent.com/2321387/doubi/master/service/ssrmu_centos -O /etc/init.d/ssrmu; then
+		if ! wget --no-check-certificate https://raw.githubusercontent.com/2321387/doubi/master/service/peng_centos -O /etc/init.d/peng; then
 			echo -e "${Error} ShadowsocksR服务 管理脚本下载失败 !" && exit 1
 		fi
-		chmod +x /etc/init.d/ssrmu
-		chkconfig --add ssrmu
-		chkconfig ssrmu on
+		chmod +x /etc/init.d/peng
+		chkconfig --add peng
+		chkconfig peng on
 	else
-		if ! wget --no-check-certificate https://raw.githubusercontent.com/2321387/doubi/master/service/ssrmu_debian -O /etc/init.d/ssrmu; then
+		if ! wget --no-check-certificate https://raw.githubusercontent.com/2321387/doubi/master/service/peng_debian -O /etc/init.d/peng; then
 			echo -e "${Error} ShadowsocksR服务 管理脚本下载失败 !" && exit 1
 		fi
-		chmod +x /etc/init.d/ssrmu
-		update-rc.d -f ssrmu defaults
+		chmod +x /etc/init.d/peng
+		update-rc.d -f peng defaults
 	fi
 	echo -e "${Info} ShadowsocksR服务 管理脚本下载完成 !"
 }
@@ -980,16 +980,16 @@ Uninstall_SSR(){
 			done
 			Save_iptables
 		fi
-		if [[ ! -z $(crontab -l | grep "ssrmu.sh") ]]; then
+		if [[ ! -z $(crontab -l | grep "peng.sh") ]]; then
 			crontab_monitor_ssr_cron_stop
 			Clear_transfer_all_cron_stop
 		fi
 		if [[ ${release} = "centos" ]]; then
-			chkconfig --del ssrmu
+			chkconfig --del peng
 		else
-			update-rc.d -f ssrmu remove
+			update-rc.d -f peng remove
 		fi
-		rm -rf ${ssr_folder} && rm -rf /etc/init.d/ssrmu
+		rm -rf ${ssr_folder} && rm -rf /etc/init.d/peng
 		echo && echo " ShadowsocksR 卸载完成 !" && echo
 	else
 		echo && echo " 卸载已取消..." && echo
@@ -1392,11 +1392,11 @@ Clear_transfer_all(){
 }
 Clear_transfer_all_cron_start(){
 	crontab -l > "$file/crontab.bak"
-	sed -i "/ssrmu.sh/d" "$file/crontab.bak"
-	echo -e "\n${Crontab_time} /bin/bash $file/ssrmu.sh clearall" >> "$file/crontab.bak"
+	sed -i "/peng.sh/d" "$file/crontab.bak"
+	echo -e "\n${Crontab_time} /bin/bash $file/peng.sh clearall" >> "$file/crontab.bak"
 	crontab "$file/crontab.bak"
 	rm -r "$file/crontab.bak"
-	cron_config=$(crontab -l | grep "ssrmu.sh")
+	cron_config=$(crontab -l | grep "peng.sh")
 	if [[ -z ${cron_config} ]]; then
 		echo -e "${Error} 定时所有用户流量清零启动失败 !" && exit 1
 	else
@@ -1405,10 +1405,10 @@ Clear_transfer_all_cron_start(){
 }
 Clear_transfer_all_cron_stop(){
 	crontab -l > "$file/crontab.bak"
-	sed -i "/ssrmu.sh/d" "$file/crontab.bak"
+	sed -i "/peng.sh/d" "$file/crontab.bak"
 	crontab "$file/crontab.bak"
 	rm -r "$file/crontab.bak"
-	cron_config=$(crontab -l | grep "ssrmu.sh")
+	cron_config=$(crontab -l | grep "peng.sh")
 	if [[ ! -z ${cron_config} ]]; then
 		echo -e "${Error} 定时所有用户流量清零停止失败 !" && exit 1
 	else
@@ -1436,19 +1436,19 @@ Start_SSR(){
 	SSR_installation_status
 	check_pid
 	[[ ! -z ${PID} ]] && echo -e "${Error} ShadowsocksR 正在运行 !" && exit 1
-	/etc/init.d/ssrmu start
+	/etc/init.d/peng start
 }
 Stop_SSR(){
 	SSR_installation_status
 	check_pid
 	[[ -z ${PID} ]] && echo -e "${Error} ShadowsocksR 未运行 !" && exit 1
-	/etc/init.d/ssrmu stop
+	/etc/init.d/peng stop
 }
 Restart_SSR(){
 	SSR_installation_status
 	check_pid
-	[[ ! -z ${PID} ]] && /etc/init.d/ssrmu stop
-	/etc/init.d/ssrmu start
+	[[ ! -z ${PID} ]] && /etc/init.d/peng stop
+	/etc/init.d/peng start
 }
 View_Log(){
 	SSR_installation_status
@@ -1703,7 +1703,7 @@ Set_config_connect_verbose_info(){
 }
 Set_crontab_monitor_ssr(){
 	SSR_installation_status
-	crontab_monitor_ssr_status=$(crontab -l|grep "ssrmu.sh monitor")
+	crontab_monitor_ssr_status=$(crontab -l|grep "peng.sh monitor")
 	if [[ -z "${crontab_monitor_ssr_status}" ]]; then
 		echo && echo -e "当前监控模式: ${Green_font_prefix}未开启${Font_color_suffix}" && echo
 		echo -e "确定要开启为 ${Green_font_prefix}ShadowsocksR服务端运行状态监控${Font_color_suffix} 功能吗？(当进程关闭则自动启动SSR服务端)[Y/n]"
@@ -1731,7 +1731,7 @@ crontab_monitor_ssr(){
 	check_pid
 	if [[ -z ${PID} ]]; then
 		echo -e "${Error} [$(date "+%Y-%m-%d %H:%M:%S %u %Z")] 检测到 ShadowsocksR服务端 未运行 , 开始启动..." | tee -a ${ssr_log_file}
-		/etc/init.d/ssrmu start
+		/etc/init.d/peng start
 		sleep 1s
 		check_pid
 		if [[ -z ${PID} ]]; then
@@ -1745,11 +1745,11 @@ crontab_monitor_ssr(){
 }
 crontab_monitor_ssr_cron_start(){
 	crontab -l > "$file/crontab.bak"
-	sed -i "/ssrmu.sh monitor/d" "$file/crontab.bak"
-	echo -e "\n* * * * * /bin/bash $file/ssrmu.sh monitor" >> "$file/crontab.bak"
+	sed -i "/peng.sh monitor/d" "$file/crontab.bak"
+	echo -e "\n* * * * * /bin/bash $file/peng.sh monitor" >> "$file/crontab.bak"
 	crontab "$file/crontab.bak"
 	rm -r "$file/crontab.bak"
-	cron_config=$(crontab -l | grep "ssrmu.sh monitor")
+	cron_config=$(crontab -l | grep "peng.sh monitor")
 	if [[ -z ${cron_config} ]]; then
 		echo -e "${Error} ShadowsocksR服务端运行状态监控功能 启动失败 !" && exit 1
 	else
@@ -1758,10 +1758,10 @@ crontab_monitor_ssr_cron_start(){
 }
 crontab_monitor_ssr_cron_stop(){
 	crontab -l > "$file/crontab.bak"
-	sed -i "/ssrmu.sh monitor/d" "$file/crontab.bak"
+	sed -i "/peng.sh monitor/d" "$file/crontab.bak"
 	crontab "$file/crontab.bak"
 	rm -r "$file/crontab.bak"
-	cron_config=$(crontab -l | grep "ssrmu.sh monitor")
+	cron_config=$(crontab -l | grep "peng.sh monitor")
 	if [[ ! -z ${cron_config} ]]; then
 		echo -e "${Error} ShadowsocksR服务端运行状态监控功能 停止失败 !" && exit 1
 	else
@@ -1769,14 +1769,14 @@ crontab_monitor_ssr_cron_stop(){
 	fi
 }
 Update_Shell(){
-	sh_new_ver=$(wget --no-check-certificate -qO- -t1 -T3 "https://raw.githubusercontent.com/2321387/doubi/master/ssrmu.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="github"
+	sh_new_ver=$(wget --no-check-certificate -qO- -t1 -T3 "https://raw.githubusercontent.com/2321387/peng/master/peng.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="github"
 	[[ -z ${sh_new_ver} ]] && echo -e "${Error} 无法链接到 Github !" && exit 0
-	if [[ -e "/etc/init.d/ssrmu" ]]; then
-		rm -rf /etc/init.d/ssrmu
+	if [[ -e "/etc/init.d/peng" ]]; then
+		rm -rf /etc/init.d/peng
 		Service_SSR
 	fi
 	cd "${file}"
-	wget -N --no-check-certificate "https://raw.githubusercontent.com/2321387/doubi/master/ssrmu.sh" && chmod +x ssrmu.sh
+	wget -N --no-check-certificate "https://raw.githubusercontent.com/2321387/peng/master/peng.sh" && chmod +x peng.sh
 	echo -e "脚本已更新为最新版本[ ${sh_new_ver} ] !(注意：因为更新方式为直接覆盖当前运行的脚本，所以可能下面会提示一些报错，无视即可)" && exit 0
 }
 # 显示 菜单状态
